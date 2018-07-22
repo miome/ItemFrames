@@ -1,0 +1,9 @@
+﻿{
+  "Name": "ItemFrames",
+  "Author": "Miome",
+  "Version": "1.0.0",
+  "Description": "Frame your items for display",
+  "EntryDll": "ItemFrames.dll",
+  "UniqueID": "miome.itemframes",
+  "UpdateKeys": []
+}
