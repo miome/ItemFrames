@@ -15,6 +15,30 @@ namespace ItemFrames.Framework
 {
     public class ItemFrame:  StardewValley.Objects.Furniture
     {
+        public Sign sign;
+        protected override void initNetFields()
+        {
+            this.sign = new Sign();
+            base.initNetFields();
+        }
+        public override bool checkForAction(Farmer who, bool justCheckingForActivity = false)
+        {
+            Game1.addHUDMessage(new HUDMessage($"cFAct: {who.Name}, {justCheckingForActivity}"));
+            if (sign.checkForAction(who, justCheckingForActivity))
+            {
+                Game1.addHUDMessage(new HUDMessage($"Sign.CFAct returned true."));
+                return true;
+            }
+            bool base_cFA=base.checkForAction(who, justCheckingForActivity);
+            Game1.addHUDMessage(new HUDMessage($"Sign.CFAct returned false. Furniture.CFAct returned {base_cFA}."));
+            return base.checkForAction(who, justCheckingForActivity);
+        }
+        public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1f){
+            sign.draw(spriteBatch, x, y, alpha);
+        }
+
+
+        /*
         public const int OBJECT = 1;
         public const int HAT = 2;
         public const int BIG_OBJECT = 3;
@@ -94,6 +118,9 @@ namespace ItemFrames.Framework
                 }
             }
         }
+        public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, bool drawStackNumber, Color color, bool drawShadow)
+        {
+        } */
 
     }
 }
