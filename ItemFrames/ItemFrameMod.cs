@@ -33,6 +33,10 @@ namespace ItemFrames
         public void Edit<T>(IAssetData asset)
         {
         }
+        private void StashCustomData()
+        {
+            
+        }
 
     }
 }
