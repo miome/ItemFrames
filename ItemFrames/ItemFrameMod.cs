@@ -19,7 +19,7 @@ namespace ItemFrames
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            ItemFrame frame = new ItemFrame(1539, new Vector2(0,0), this.Monitor);
+            ItemFrame frame = new ItemFrame(1547, new Vector2(0,0), this.Monitor);
             //frame.furniture_type.Set(6);
             //frame.parentSheetIndex.Set(1539);
             Game1.player.addItemToInventory(frame);

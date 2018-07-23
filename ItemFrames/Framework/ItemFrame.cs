@@ -13,6 +13,8 @@ using System.Xml.Serialization;
 
 namespace ItemFrames.Framework
 {
+    [XmlRoot(Namespace = Stardew)]
+    [XmlInclude(typeof(ItemFrame))]
     public class ItemFrame : StardewValley.Objects.Furniture
     {
         public const int OBJECT = 1;
@@ -33,6 +35,10 @@ namespace ItemFrames.Framework
         {
             this.monitor = monitor;
         }
+        public ItemFrame() : base() 
+        {
+            
+        }
 
         protected override void initNetFields()
         {
@@ -43,19 +49,29 @@ namespace ItemFrames.Framework
 
         public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1f)
         {
-            this.monitor.Log($"drawF {x},{y}");
+            Rectangle rectangle = this.sourceRect.Value;
+            this.monitor.Log($"drawF {x},{y} {rectangle.Width}, {rectangle.Height}");
             base.draw(spriteBatch, x, y, alpha);
             if (this.displayItem.Value != null)
             {
+                float xOffset = (64*rectangle.Width/16 - 64) / 2;
+                float yOffset = (64*rectangle.Height/16 - 64) / 2;
+                float layerDepth = 1f-1E-05f;
                 if (x == -1)
                 {
                     this.updateDrawPosition();
-                    this.drawItem(this.displayItem, this.drawPosition.X, this.drawPosition.Y, spriteBatch);
+                    float itemx = this.drawPosition.X + xOffset;
+                    float itemy = this.drawPosition.Y + yOffset;
+                    //layerDepth = itemy / 10000f;
+                    this.drawItem(this.displayItem, itemx, itemy, spriteBatch, layerDepth);
 
                 }
                 else
                 {
-                    this.drawItem(this.displayItem, x*Game1.tileSize, y*Game1.tileSize, spriteBatch);
+                    float itemx = x * Game1.tileSize + xOffset;
+                    float itemy = y * Game1.tileSize + yOffset;
+                    layerDepth = itemy / 10000f;
+                    this.drawItem(this.displayItem, itemx, itemy, spriteBatch, layerDepth);
                 }
             }
             /*
@@ -71,8 +87,9 @@ namespace ItemFrames.Framework
                 float layerDepth;
                 rectangle = base.boundingBox.Value;
                 layerDepth = (float)(rectangle.Bottom - 8) / 10000f;
+                this.monitor.Log($"{layerDepth}");
                 spriteBatch.Draw(texture, position, sourceRectangle, color, 0f, zero, 4f, (SpriteEffects)effects, layerDepth);
-                this.drawItem(this.displayItem, position.X, position.Y, spriteBatch);
+                //this.drawItem(this.displayItem, position.X, position.Y, spriteBatch);
             }
             else
             {
@@ -85,28 +102,10 @@ namespace ItemFrames.Framework
                 float layerDepth2;
                 rectangle = base.boundingBox.Value;
                 layerDepth2 = (float)(rectangle.Bottom - 8) / 10000f;
+                this.monitor.Log($"{layerDepth2}");
                 spriteBatch.Draw(texture2, position2, sourceRectangle2, color2, 0f, zero2, 4f, (SpriteEffects)effects2, layerDepth2);
                 //this.drawItem(this.displayItem, position2.X, position2.Y, spriteBatch);
-                this.drawItem(this.displayItem, x*64, y*64, spriteBatch);
-            }
-            if (base.heldObject.Value != null)
-            {
-                if (base.heldObject.Value is Furniture)
-                {
-                    (base.heldObject.Value as Furniture).drawAtNonTileSpot(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(base.boundingBox.Center.X - 32), (float)(base.boundingBox.Center.Y - (base.heldObject.Value as Furniture).sourceRect.Height * 4 - (((bool)this.drawHeldObjectLow) ? (-16) : 16)))), (float)(base.boundingBox.Bottom - 7) / 10000f, alpha);
-                }
-                else
-                {
-                    Texture2D shadowTexture = Game1.shadowTexture;
-                    Vector2 position3 = Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(base.boundingBox.Center.X - 32), (float)(base.boundingBox.Center.Y - (((bool)this.drawHeldObjectLow) ? 32 : 85)))) + new Vector2(32f, 53f);
-                    Rectangle? sourceRectangle3 = Game1.shadowTexture.Bounds;
-                    Color color3 = Color.White * alpha;
-                    rectangle = Game1.shadowTexture.Bounds;
-                    float x2 = (float)rectangle.Center.X;
-                    rectangle = Game1.shadowTexture.Bounds;
-                    spriteBatch.Draw(shadowTexture, position3, sourceRectangle3, color3, 0f, new Vector2(x2, (float)rectangle.Center.Y), 4f, SpriteEffects.None, (float)base.boundingBox.Bottom / 10000f);
-                    spriteBatch.Draw(Game1.objectSpriteSheet, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(base.boundingBox.Center.X - 32), (float)(base.boundingBox.Center.Y - (((bool)this.drawHeldObjectLow) ? 32 : 85)))), GameLocation.getSourceRectForObject(base.heldObject.Value.ParentSheetIndex), Color.White * alpha, 0f, Vector2.Zero, 4f, SpriteEffects.None, (float)(base.boundingBox.Bottom + 1) / 10000f);
-                }
+                //this.drawItem(this.displayItem, x*64, y*64, spriteBatch);
             }
             /*if (this.displayItem.Value != null)
             {
@@ -116,32 +115,33 @@ namespace ItemFrames.Framework
             }*/
         }
 
-        public void drawItem(NetRef<Item> i, float x, float y, SpriteBatch spriteBatch)
+        public void drawItem(NetRef<Item> i, float x, float y, SpriteBatch spriteBatch, float layerDepth)
         {
             if (i.Value != null)
             {
-                y += 64;
-                this.monitor.Log($"draw [ {i.Get().Name}, {x}, {y} ]");
+                //float layerDepth = Math.Max(0f, (float)(y - 24) / 10000f) + (float)x * 1E-05f + 1E-05f;
+
+                this.monitor.Log($"draw [ {i.Get().Name}, {x}, {y} LD: {layerDepth}]");
                 switch (this.displayType.Value)
                 {
                     case 1:
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 2f, (float)(y - 64 + 21 + 8 - 1))), 0.75f, 0.45f, Math.Max(0f, (float)(y - 24 + 64) / 10000f) + (float)x * 1E-05f + 1E-05f, false, Color.Black, false);
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 2f, (float)(y - 64 + 21 + 4 - 1))), 0.75f, 1f, Math.Max(0f, (float)(y + 64 - 24) / 10000f) + (float)x * 1E-05f + 2E-05f, false, Color.White, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 2f, (float)(y  + 8 - 1))), 0.75f, 0.45f, layerDepth, false, Color.Black, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 2f, (float)(y  + 4 - 1))), 0.75f, 1f, layerDepth+1E-05f, false, Color.White, false);
                         break;
                     case 3:
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x, (float)(y - 64 + 21 + 4 - 1))), 0.75f, 1f, Math.Max(0f, (float)((y + 1) * 64 - 24) / 10000f) + (float)x * 1E-05f + 1E-05f, false, Color.White, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x, (float)(y  + 4 - 1))), 0.75f, 1f, layerDepth, false, Color.White, false);
                         break;
                     case 2:
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 6f, (float)(y - 64 + 21 + 16 - 1))), 0.75f, 0.45f, Math.Max(0f, (float)(y + 64 - 24) / 10000f) + (float)x * 1E-05f + 1E-05f, false, Color.Black, false);
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 6f, (float)(y - 64 + 21 + 12 - 1))), 0.75f, 1f, Math.Max(0f, (float)(y + 64 - 24) / 10000f) + (float)x * 1E-05f + 2E-05f, false, Color.White, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 6f, (float)(y  + 16 - 1))), 0.75f, 0.45f, layerDepth, false, Color.Black, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x + 6f, (float)(y  + 12 - 1))), 0.75f, 1f, layerDepth + 1E-05f, false, Color.White, false);
                         break;
                     case 4:
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x - 1f, (float)(y - 64 + 21 + 8 - 1))), 0.75f, 0.45f, Math.Max(0f, (float)(y + 64 - 24) / 10000f) + (float)x * 1E-05f + 1E-05f, false, Color.Black, false);
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x - 1f, (float)(y - 64 + 21 + 4 - 1))), 0.75f, 1f, Math.Max(0f, (float)(y +  64 - 24) / 10000f) + (float)x * 1E-05f + 2E-05f, false, Color.White, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x - 1f, (float)(y  + 8 - 1))), 0.75f, 0.45f, layerDepth, false, Color.Black, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x - 1f, (float)(y  + 4 - 1))), 0.75f, 1f, layerDepth + 1E-05f, false, Color.White, false);
                         break;
                     case 5:
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x, (float)(y  - 64 + 21 + 8 - 1))), 0.75f, 0.45f, Math.Max(0f, (float)(y + 64 - 24) / 10000f) + (float)x * 1E-05f + 1E-05f, false, Color.Black, false);
-                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x, (float)(y  - 64 + 21 + 4 - 1))), 0.75f, 1f, Math.Max(0f, (float)(y + 64 - 24) / 10000f) + (float)x * 1E-05f + 2E-05f, false, Color.White, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x, (float)(y  + 8 - 1))), 0.75f, 0.45f, layerDepth, false, Color.Black, false);
+                        i.Value.drawInMenu(spriteBatch, Game1.GlobalToLocal(Game1.viewport, new Vector2(x, (float)(y  + 4 - 1))), 0.75f, 1f, layerDepth + 1E-05f, false, Color.White, false);
                         break;
                 }
             }
