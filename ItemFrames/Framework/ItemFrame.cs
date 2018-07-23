@@ -13,7 +13,7 @@ using System.Xml.Serialization;
 
 namespace ItemFrames.Framework
 {
-    [XmlRoot(Namespace = Stardew)]
+    
     [XmlInclude(typeof(ItemFrame))]
     public class ItemFrame : StardewValley.Objects.Furniture
     {
