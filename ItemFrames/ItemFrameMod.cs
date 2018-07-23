@@ -19,9 +19,9 @@ namespace ItemFrames
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            ItemFrame frame = new ItemFrame();
-            frame.furniture_type.Set(6);
-            frame.parentSheetIndex.Set(37);
+            ItemFrame frame = new ItemFrame(1539, new Vector2(-1, -1));
+            //frame.furniture_type.Set(6);
+            //frame.parentSheetIndex.Set(1539);
             Game1.player.addItemToInventory(frame);
             Game1.addHUDMessage(new HUDMessage($"New ItemFrame added to Inventory"));
             this.Monitor.Log("New ItemFrame added to inventory", LogLevel.Trace);
