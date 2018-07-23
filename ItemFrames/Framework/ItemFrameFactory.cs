@@ -23,7 +23,9 @@ namespace ItemFrames.Framework
             this.itemFrames.Add(itemFrame);
             return itemFrame;
         }
-        public ItemFrame deleteItemFrame()
+        public bool deleteItemFrame(){
+            return false;
+        }
 
     }
 }
