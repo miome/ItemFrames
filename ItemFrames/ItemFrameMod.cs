@@ -14,7 +14,6 @@ namespace ItemFrames
 {
     public class ItemFrameMod : Mod, IAssetEditor
     {
-        ItemFrameFactory factory;
         private ModConfig Config;
         public override void Entry(IModHelper helper)
         {
@@ -22,12 +21,10 @@ namespace ItemFrames
             SaveEvents.BeforeSave += this.SaveEvents_BeforeSave;
             SaveEvents.AfterSave += this.SaveEvents_AfterSave;
             this.Config = this.Helper.ReadConfig<ModConfig>();
-            this.factory = new ItemFrameFactory();
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            //ItemFrame frame = new ItemFrame(1547, new Vector2(0,0), this.Monitor);
-            ItemFrame frame = this.factory.newItemFrame(1547, new Vector2(0, 0), this.Monitor);
+            ItemFrame frame = new ItemFrame(1547, new Vector2(0,0), this.Monitor);
             Game1.player.addItemToInventory(frame);
             Game1.addHUDMessage(new HUDMessage($"New ItemFrame added to Inventory"));
             this.Monitor.Log("New ItemFrame added to inventory", LogLevel.Trace);
@@ -43,6 +40,18 @@ namespace ItemFrames
         {
             foreach (GameLocation location in ItemFrameMod.GetLocations())
             {
+                foreach (StardewValley.Object o in location.objects.Values)
+                {
+                    if(o is Chest chest){
+                        for (int i = 0; i < chest.items.Count; i++)
+                        {
+                            if (chest.items[i] is ItemFrame frame)
+                            {
+                                chest.items[i] = frame.asFurniture();
+                            }
+                        }
+                    }
+                }
                 if (location is StardewValley.Locations.DecoratableLocation decoLoc)
                 {
                     for (int i = 0; i < decoLoc.furniture.Count; i++)
@@ -64,6 +73,17 @@ namespace ItemFrames
         private void RestoreItemFrames(){
             foreach (GameLocation location in ItemFrameMod.GetLocations())
             {
+                foreach (StardewValley.Object o in location.objects.Values){
+                    this.Monitor.Log($"{location.name} has {o.Name}");
+                    if (o is Chest chest){
+                        for (int i = 0; i<chest.items.Count; i++){
+                            if(chest.items[i] is Furniture furniture2 && furniture2.Name=="ItemFrame"){
+                                chest.items[i] = new ItemFrame(furniture2, this.Monitor);
+                            }
+                        }
+                    }
+
+                }
                 if (location is StardewValley.Locations.DecoratableLocation decoLoc)
                 {
                     for (int i = 0; i < decoLoc.furniture.Count; i++)

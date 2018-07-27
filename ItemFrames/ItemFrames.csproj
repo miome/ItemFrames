@@ -36,7 +36,6 @@
     <Compile Include="ItemFrameMod.cs" />
     <Compile Include="ModConfig.cs" />
     <Compile Include="Framework\ItemFrame.cs" />
-    <Compile Include="Framework\ItemFrameFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
