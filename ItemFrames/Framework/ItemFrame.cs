@@ -40,6 +40,13 @@ namespace ItemFrames.Framework
                 this.setDisplayType();
             }
         }
+        public ItemFrame(Furniture furniture, IMonitor monitor): base(furniture.ParentSheetIndex, furniture.TileLocation){
+            if(furniture.heldObject.Value is Item item){
+                this.displayItem.Set(item.getOne());
+                this.setDisplayType();
+            }
+            this.monitor = monitor;
+        }
         public ItemFrame() : base() 
         {
             

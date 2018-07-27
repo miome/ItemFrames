@@ -60,22 +60,7 @@ namespace ItemFrames
                 }
             } 
         }
-        private void ReplaceEachFrame(StardewValley.Object[] inv){
-            for (int i = 0; i < inv.Count(); i++)
-            {
-                if (inv[i] is ItemFrame frame)
-                {
-                    Furniture replacement = new Furniture(frame.ParentSheetIndex, frame.TileLocation);
-                    replacement.name = "ItemFrame";
-                    if (frame.displayItem.Value is StardewValley.Object o)
-                    {
-                        replacement.heldObject.Set(new Netcode.NetRef<StardewValley.Object>(o));
-                    }
-                    inv[i] = replacement;
-                }
-            }
-            
-        }
+
         private void RestoreItemFrames(){
             foreach (GameLocation location in ItemFrameMod.GetLocations())
             {
@@ -83,12 +68,15 @@ namespace ItemFrames
                 {
                     for (int i = 0; i < decoLoc.furniture.Count; i++)
                     {
-                        Furniture furniture = decoLoc.furniture[i];
-                        if(furniture.Name == "ItemFrame"){
-                            ItemFrame frame = new ItemFrame(furniture.ParentSheetIndex, furniture.TileLocation, this.Monitor, furniture.heldObject);
-                            decoLoc.furniture[i] = frame;
+                        if(decoLoc.furniture[i].Name == "ItemFrame"){
+                            decoLoc.furniture[i] = new ItemFrame(decoLoc.furniture[i],this.Monitor);
                         }
                     }
+                }
+            }
+            for (int i = 0; i < Game1.player.items.Count; i++){
+                if (Game1.player.items[i] is Furniture furniture && furniture.Name=="ItemFrame"){
+                    Game1.player.items[i] = new ItemFrame(furniture, this.Monitor);
                 }
             }
         }
