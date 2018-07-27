@@ -81,6 +81,15 @@ namespace ItemFrames.Framework
                 }
             }
         }
+        public Furniture asFurniture(){
+            Furniture furniture = new Furniture(this.ParentSheetIndex, this.TileLocation);
+            furniture.name = "ItemFrame";
+            if (this.displayItem.Value is StardewValley.Object o)
+            {
+                furniture.heldObject.Set(new Netcode.NetRef<StardewValley.Object>(o));
+            }
+            return furniture;
+        }
 
         public void drawItem(NetRef<Item> i, float x, float y, SpriteBatch spriteBatch, float layerDepth)
         {

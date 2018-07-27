@@ -34,28 +34,47 @@ namespace ItemFrames
             this.RestoreItemFrames();
         }
         private void SaveEvents_BeforeSave(object sender, EventArgs eventArgs){
-            this.StashItemFrames();
+            this.ConvertItemFrames();
         }
         private void SaveEvents_AfterSave(object sender, EventArgs eventArgs){
             this.RestoreItemFrames();
         }
-        private void StashItemFrames()
+        private void ConvertItemFrames()
         {
-            foreach(GameLocation location in ItemFrameMod.GetLocations()){
-                if(location is StardewValley.Locations.DecoratableLocation decoLoc){
-                    for (int i = 0; i < decoLoc.furniture.Count; i++){
-                        if(decoLoc.furniture[i] is ItemFrame frame){
-                            Furniture replacement = new Furniture(frame.ParentSheetIndex, frame.TileLocation);
-                            replacement.name = "ItemFrame";
-                            if (frame.displayItem.Value is StardewValley.Object o)
-                            {
-                                replacement.heldObject.Set(new Netcode.NetRef<StardewValley.Object>(o));
-                            }
-                            decoLoc.furniture[i] = replacement;
+            foreach (GameLocation location in ItemFrameMod.GetLocations())
+            {
+                if (location is StardewValley.Locations.DecoratableLocation decoLoc)
+                {
+                    for (int i = 0; i < decoLoc.furniture.Count; i++)
+                    {
+                        if (decoLoc.furniture[i] is ItemFrame frame)
+                        {
+                            decoLoc.furniture[i] = frame.asFurniture();
                         }
                     }
                 }
             }
+            for (int i = 0; i < Game1.player.items.Count; i++){
+                if(Game1.player.items[i] is ItemFrame frame){
+                    Game1.player.items[i] = frame.asFurniture();
+                }
+            } 
+        }
+        private void ReplaceEachFrame(StardewValley.Object[] inv){
+            for (int i = 0; i < inv.Count(); i++)
+            {
+                if (inv[i] is ItemFrame frame)
+                {
+                    Furniture replacement = new Furniture(frame.ParentSheetIndex, frame.TileLocation);
+                    replacement.name = "ItemFrame";
+                    if (frame.displayItem.Value is StardewValley.Object o)
+                    {
+                        replacement.heldObject.Set(new Netcode.NetRef<StardewValley.Object>(o));
+                    }
+                    inv[i] = replacement;
+                }
+            }
+            
         }
         private void RestoreItemFrames(){
             foreach (GameLocation location in ItemFrameMod.GetLocations())
