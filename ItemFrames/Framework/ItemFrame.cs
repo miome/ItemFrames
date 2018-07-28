@@ -21,11 +21,10 @@ namespace ItemFrames.Framework
         public const int RING = 4;
         public const int FURNITURE = 5;
 
-        //[XmlElement("displayItem")]
         public readonly NetRef<Item> displayItem = new NetRef<Item>();
-
-        //[XmlElement("displayType")]
         public readonly NetInt displayType = new NetInt();
+        public readonly NetFloat xOffset = new NetFloat();
+        public readonly NetFloat yOffset = new NetFloat();
 
         private IMonitor monitor;
 
@@ -34,9 +33,11 @@ namespace ItemFrames.Framework
             this.monitor = monitor;
             if (dispItem != null)
             {
-                this.displayItem = new NetRef<Item>(dispItem);
+                this.displayItem = new NetRef<Item>(dispItem.getOne());
                 this.setDisplayType();
             }
+            this.setOffsets();
+
         }
         public ItemFrame(Furniture furniture, IMonitor monitor): base(furniture.ParentSheetIndex, furniture.TileLocation){
             if(furniture.heldObject.Value is Item item){
@@ -44,10 +45,28 @@ namespace ItemFrames.Framework
                 this.setDisplayType();
             }
             this.monitor = monitor;
+            this.setOffsets();
         }
         public ItemFrame() : base() 
         {
             
+        }
+
+        public void setOffsets(){
+            ItemFrameData itemFrameData = ItemFrameMod.IFDataByName(this.displayName);
+            if (itemFrameData != null)
+            {
+                this.xOffset.Set(itemFrameData.displayLocation.X * 4);
+                this.yOffset.Set(itemFrameData.displayLocation.Y * 4);
+                ItemFrameMod.instance.Monitor.Log($"Offsets taken from IFD");
+            }
+            else
+            {
+                ItemFrameMod.instance.Monitor.Log($"Offsets calculated from width {sourceRect.Value.Width} & height {this.sourceRect.Value.Height}.");
+                this.xOffset.Set((64 * this.sourceRect.Value.Width / 16 - 64) / 2);
+                this.yOffset.Set((64 * this.sourceRect.Value.Height / 16 - 64) / 2);
+            }
+            ItemFrameMod.instance.Monitor.Log($"{this.displayName} offsets: {this.xOffset.Get()} {this.yOffset.Get()}");  
         }
 
 
@@ -65,22 +84,22 @@ namespace ItemFrames.Framework
             base.draw(spriteBatch, x, y, alpha);
             if (this.displayItem.Value != null)
             {
-                float xOffset = (64 * rectangle.Width / 16 - 64) / 2;
-                float yOffset = (64 * rectangle.Height / 16 - 64) / 2;
+                //float xOffset = (64 * rectangle.Width / 16 - 64) / 2;
+                //float yOffset = (64 * rectangle.Height / 16 - 64) / 2;
                 float layerDepth = 1f - 1E-05f;
                 if (x == -1)
                 {
                     this.updateDrawPosition();
-                    float itemx = this.drawPosition.X + xOffset;
-                    float itemy = this.drawPosition.Y + yOffset;
+                    float itemx = this.drawPosition.X + this.xOffset;
+                    float itemy = this.drawPosition.Y + this.yOffset;
                     //layerDepth = itemy / 10000f;
                     this.drawItem(this.displayItem, itemx, itemy, spriteBatch, layerDepth);
 
                 }
                 else
                 {
-                    float itemx = x * Game1.tileSize + xOffset;
-                    float itemy = y * Game1.tileSize + yOffset;
+                    float itemx = x * Game1.tileSize + this.xOffset;
+                    float itemy = y * Game1.tileSize + this.yOffset;
                     layerDepth = itemy / 10000f;
                     this.drawItem(this.displayItem, itemx, itemy, spriteBatch, layerDepth);
                 }

@@ -30,12 +30,16 @@
     <Reference Include="System" />
     <Reference Include="System.Xml.Serialization" />
     <Reference Include="System.Xml" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ItemFrameMod.cs" />
     <Compile Include="ModConfig.cs" />
     <Compile Include="Framework\ItemFrame.cs" />
+    <Compile Include="Framework\ItemFrameData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

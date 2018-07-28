@@ -17,6 +17,7 @@ namespace ItemFrames
     {
         private ModConfig Config;
         public static ItemFrameMod instance;
+        public static List<ItemFrameData> itemFrameData;
         public override void Entry(IModHelper helper)
         {
             instance = this;
@@ -24,10 +25,20 @@ namespace ItemFrames
             SaveEvents.BeforeSave += this.SaveEvents_BeforeSave;
             SaveEvents.AfterSave += this.SaveEvents_AfterSave;
             this.Config = this.Helper.ReadConfig<ModConfig>();
+            ItemFrameMod.itemFrameData = new List<ItemFrameData>();
+            ItemFrameData itemFrameData = new ItemFrameData();
+            itemFrameData.displayName = "Wooden Frame";
+            itemFrameData.height = 2;
+            itemFrameData.width = 2;
+            itemFrameData.textureFile = "data/Wooden_Frame.png";
+            itemFrameData.displayLocation = new Vector2(8, 8);
+            ItemFrameMod.itemFrameData.Add(itemFrameData);
+            this.Helper.WriteJsonFile<List<ItemFrameData>>("data/frames.json", ItemFrameMod.itemFrameData);
+
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            ItemFrame frame = new ItemFrame(2000, new Vector2(0,0), this.Monitor);
+            ItemFrame frame = new ItemFrame(1602, new Vector2(0,0), this.Monitor);
             Game1.player.addItemToInventory(frame);
             Game1.addHUDMessage(new HUDMessage($"New ItemFrame added to Inventory"));
             this.Monitor.Log("New ItemFrame added to inventory", LogLevel.Trace);
@@ -137,6 +148,9 @@ namespace ItemFrames
         private Rectangle furnitureRect(int index)
         {
             return new Rectangle((index % 32) * 16, (int)(index / 32) * 16, 32, 32);
+        }
+        public static ItemFrameData IFDataByName(string displayName){
+            return null;
         }
 
 
