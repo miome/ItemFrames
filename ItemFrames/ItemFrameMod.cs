@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -15,8 +16,10 @@ namespace ItemFrames
     public class ItemFrameMod : Mod, IAssetEditor
     {
         private ModConfig Config;
+        public static ItemFrameMod instance;
         public override void Entry(IModHelper helper)
         {
+            instance = this;
             SaveEvents.AfterLoad += this.SaveEvents_AfterLoad;
             SaveEvents.BeforeSave += this.SaveEvents_BeforeSave;
             SaveEvents.AfterSave += this.SaveEvents_AfterSave;
@@ -24,7 +27,7 @@ namespace ItemFrames
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            ItemFrame frame = new ItemFrame(1547, new Vector2(0,0), this.Monitor);
+            ItemFrame frame = new ItemFrame(2000, new Vector2(0,0), this.Monitor);
             Game1.player.addItemToInventory(frame);
             Game1.addHUDMessage(new HUDMessage($"New ItemFrame added to Inventory"));
             this.Monitor.Log("New ItemFrame added to inventory", LogLevel.Trace);
@@ -74,7 +77,6 @@ namespace ItemFrames
             foreach (GameLocation location in ItemFrameMod.GetLocations())
             {
                 foreach (StardewValley.Object o in location.objects.Values){
-                    this.Monitor.Log($"{location.name} has {o.Name}");
                     if (o is Chest chest){
                         for (int i = 0; i<chest.items.Count; i++){
                             if(chest.items[i] is Furniture furniture2 && furniture2.Name=="ItemFrame"){
@@ -113,16 +115,30 @@ namespace ItemFrames
         }
         public bool CanEdit<T>(IAssetInfo asset)
         {
-            return false;
+            //this.Monitor.Log($"{asset.AssetName}");
+            return asset.AssetNameEquals("Data/Furniture") || asset.AssetNameEquals("TileSheets/furniture");
         }
         public void Edit<T>(IAssetData asset)
         {
+            this.Monitor.Log($"{asset.AssetName}");
+            if (asset.AssetNameEquals("Data/Furniture"))
+            {
+                asset.AsDictionary<int, string>().Data.Add(2000, "'ItemFrame1'/painting/2 2/2 2/1/400");
+            } else if (asset.AssetNameEquals("TileSheets/furniture")){
+                var oldTex = asset.AsImage().Data;
+                Texture2D newTex = new Texture2D(Game1.graphics.GraphicsDevice, oldTex.Width, Math.Max(oldTex.Height, 4096));
+                asset.ReplaceWith(newTex);
+                asset.AsImage().PatchImage(oldTex);
+                Texture2D frameTexture = this.Helper.Content.Load<Texture2D>("data/Wooden_Frame.png", ContentSource.ModFolder);
+                this.Monitor.Log($"{frameTexture.Height} {frameTexture.Width}");
+                asset.AsImage().PatchImage(frameTexture, targetArea: furnitureRect(2000));
+            }
+        }
+        private Rectangle furnitureRect(int index)
+        {
+            return new Rectangle((index % 32) * 16, (int)(index / 32) * 16, 32, 32);
         }
 
-        private List<ItemFrame> LoadItemFrames(){
-            return new List<ItemFrame>();
-            
-        }
 
     }
 }

@@ -13,8 +13,6 @@ using System.Xml.Serialization;
 
 namespace ItemFrames.Framework
 {
-    //[XmlRoot(Namespace = "StardewValley")]
-    //[XmlInclude(typeof(ItemFrames.Framework.ItemFrame))]
     public class ItemFrame : StardewValley.Objects.Furniture
     {
         public const int OBJECT = 1;
@@ -149,7 +147,7 @@ namespace ItemFrames.Framework
 
         public override bool clicked(Farmer who)
         {
-            //return this.checkForAction(who, false);
+            ItemFrameMod.instance.Monitor.Log($"{this.sourceRect.Value}");
             if (who.CurrentItem != null)
             {
                 this.monitor.Log($"Click w/item detected. Set displayItem to {who.CurrentItem.Name}");
