@@ -26,8 +26,19 @@ namespace ItemFrames.Framework
         public readonly NetFloat xOffset = new NetFloat();
         public readonly NetFloat yOffset = new NetFloat();
         public new  NetString description = new NetString();
+        private  Vector2 defaultTile = new Vector2(0, 0);
 
         private IMonitor monitor;
+
+        public ItemFrame(ItemFrameData itemFrameData, Vector2 tile, IMonitor monitor, Item dispItem = null): base(itemFrameData.id, tile){
+            this.monitor = monitor;
+            if (dispItem != null)
+            {
+                this.displayItem = new NetRef<Item>(dispItem.getOne());
+                this.setDataFromJson();
+            }
+            this.setDataFromJson();
+        } 
 
         public ItemFrame(int which, Vector2 tile, IMonitor monitor, Item dispItem=null) : base(which, tile)
         {

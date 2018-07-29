@@ -7,6 +7,7 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley.Objects;
 using StardewValley.Locations;
+using StardewValley.Menus;
 using StardewValley;
 using ItemFrames.Framework;
 using System.Linq;
@@ -25,6 +26,7 @@ namespace ItemFrames
             SaveEvents.AfterLoad += this.SaveEvents_AfterLoad;
             SaveEvents.BeforeSave += this.SaveEvents_BeforeSave;
             SaveEvents.AfterSave += this.SaveEvents_AfterSave;
+            MenuEvents.MenuChanged += this.MenuEvents_MenuChanged;
             this.Config = this.Helper.ReadConfig<ModConfig>();
             ItemFrameMod.itemFrameDatum = this.Helper.ReadJsonFile<List<ItemFrameData>>("data/frames.json");
             foreach(ItemFrameData ifd in itemFrameDatum){
@@ -36,18 +38,7 @@ namespace ItemFrames
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            //ItemFrame frame = new ItemFrame(1602, new Vector2(0,0), this.Monitor);
-            //Game1.player.addItemToInventory(frame);
-            //Game1.addHUDMessage(new HUDMessage($"New ItemFrame added to Inventory"));
-            //this.Monitor.Log("New ItemFrame added to inventory", LogLevel.Trace);
             this.RestoreItemFrames();
-            Game1.player.setInventory(new List<Item>());
-            foreach(ItemFrameData ifd in ItemFrameMod.itemFrameDatum){
-                if (!Game1.player.hasItemInInventoryNamed(ifd.displayName))
-                {
-                    Game1.player.addItemToInventory(new ItemFrame(ifd.id, new Vector2(0, 0), this.Monitor));
-                }
-            }
         }
         private void SaveEvents_BeforeSave(object sender, EventArgs eventArgs){
             this.ConvertItemFrames();
@@ -131,19 +122,16 @@ namespace ItemFrames
         }
         public bool CanEdit<T>(IAssetInfo asset)
         {
-            //this.Monitor.Log($"{asset.AssetName}");
             return asset.AssetNameEquals("Data/Furniture") || asset.AssetNameEquals("TileSheets/furniture");
         }
         public void Edit<T>(IAssetData asset)
         {
-            this.Monitor.Log($"{asset.AssetName}");
             if (asset.AssetNameEquals("Data/Furniture"))
             {
-                //asset.AsDictionary<int, string>().Data.Add(2000, "'Wooden Frame'/painting/2 2/2 2/1/400");
                 foreach(ItemFrameData ifd in ItemFrameMod.itemFrameDatum){
                     string lw = $"{(int)(ifd.texture.Width / 16)} {(int)(ifd.texture.Height / 16)}";
                     string bb = $"{(int)(ifd.texture.Width / 16)} {Math.Min(2, (int)(ifd.texture.Height / 16))}";
-                    this.Monitor.Log($"'{ifd.displayName}'/painting/{lw}/{lw}/1/100", LogLevel.Trace);
+                    this.Monitor.Log($"Adding '{ifd.displayName}'/painting/{lw}/{lw}/1/100", LogLevel.Trace);
                     asset.AsDictionary<int, string>().Data.Add(ifd.id, $"'{ifd.displayName}'/painting/{lw}/{bb}/1/100");
                 }
             } else if (asset.AssetNameEquals("TileSheets/furniture")){
@@ -170,6 +158,26 @@ namespace ItemFrames
             return null;
         }
 
-
+        private void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e)
+        {
+            if (Game1.activeClickableMenu is ShopMenu)
+            {
+                ShopMenu shop = (ShopMenu)Game1.activeClickableMenu;
+                Dictionary<Item, int[]> items = Helper.Reflection.GetField<Dictionary<Item, int[]>>(shop, "itemPriceAndStock").GetValue();
+                List<Item> selling = Helper.Reflection.GetField<List<Item>>(shop, "forSale").GetValue();
+                int currency = Helper.Reflection.GetField<int>(shop, "currency").GetValue();
+                bool isCatalogue = (currency == 0 && selling.Count > 0 && selling[0] is Furniture);
+                if (isCatalogue || (shop.portraitPerson != null && shop.portraitPerson is NPC shopk && shopk.name == "Robin"))
+                {
+                    Dictionary<Item, int> newItemsToSell = new Dictionary<Item, int>();
+                    foreach (ItemFrameData f in ItemFrameMod.itemFrameDatum)
+                    {
+                        Item item = (Item)new ItemFrame(f, new Vector2(0, 0), ItemFrameMod.instance.Monitor); 
+                        items.Add(item, new int[] { isCatalogue ? 0 : f.price, int.MaxValue });
+                        selling.Add(item);
+                    }
+                }
+            }
+        }
     }
 }

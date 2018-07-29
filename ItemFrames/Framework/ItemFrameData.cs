@@ -17,6 +17,7 @@ namespace ItemFrames.Framework
         //public int width { get; set; }
         //public int height { get; set; }
         public Vector2 displayLocation { get; set; }
+        public int price { get; set; } = 100;
         
     }
 }
