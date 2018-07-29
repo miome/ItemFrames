@@ -25,6 +25,7 @@ namespace ItemFrames.Framework
         public readonly NetInt displayType = new NetInt();
         public readonly NetFloat xOffset = new NetFloat();
         public readonly NetFloat yOffset = new NetFloat();
+        public new  NetString description = new NetString();
 
         private IMonitor monitor;
 
@@ -34,9 +35,9 @@ namespace ItemFrames.Framework
             if (dispItem != null)
             {
                 this.displayItem = new NetRef<Item>(dispItem.getOne());
-                this.setDisplayType();
+                this.setDataFromJson();
             }
-            this.setOffsets();
+            this.setDataFromJson();
 
         }
         public ItemFrame(Furniture furniture, IMonitor monitor): base(furniture.ParentSheetIndex, furniture.TileLocation){
@@ -45,20 +46,26 @@ namespace ItemFrames.Framework
                 this.setDisplayType();
             }
             this.monitor = monitor;
-            this.setOffsets();
+            this.setDataFromJson();
         }
         public ItemFrame() : base() 
         {
             
         }
 
-        public void setOffsets(){
-            ItemFrameData itemFrameData = ItemFrameMod.IFDataByName(this.displayName);
+       
+
+
+        public void setDataFromJson(){
+            ItemFrameData itemFrameData = ItemFrameMod.IFDataByName(this.name);
             if (itemFrameData != null)
             {
                 this.xOffset.Set(itemFrameData.displayLocation.X * 4);
                 this.yOffset.Set(itemFrameData.displayLocation.Y * 4);
                 ItemFrameMod.instance.Monitor.Log($"Offsets taken from IFD");
+                this.displayName = itemFrameData.displayName;
+                this.description.Set(itemFrameData.description);
+
             }
             else
             {
@@ -66,7 +73,7 @@ namespace ItemFrames.Framework
                 this.xOffset.Set((64 * this.sourceRect.Value.Width / 16 - 64) / 2);
                 this.yOffset.Set((64 * this.sourceRect.Value.Height / 16 - 64) / 2);
             }
-            ItemFrameMod.instance.Monitor.Log($"{this.displayName} offsets: {this.xOffset.Get()} {this.yOffset.Get()}");  
+            ItemFrameMod.instance.Monitor.Log($"{this.Name} offsets: {this.xOffset.Get()} {this.yOffset.Get()}");  
         }
 
 

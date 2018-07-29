@@ -17,7 +17,8 @@ namespace ItemFrames
     {
         private ModConfig Config;
         public static ItemFrameMod instance;
-        public static List<ItemFrameData> itemFrameData;
+        public static List<ItemFrameData> itemFrameDatum;
+        public int nextID = 2048;
         public override void Entry(IModHelper helper)
         {
             instance = this;
@@ -25,24 +26,28 @@ namespace ItemFrames
             SaveEvents.BeforeSave += this.SaveEvents_BeforeSave;
             SaveEvents.AfterSave += this.SaveEvents_AfterSave;
             this.Config = this.Helper.ReadConfig<ModConfig>();
-            ItemFrameMod.itemFrameData = new List<ItemFrameData>();
-            ItemFrameData itemFrameData = new ItemFrameData();
-            itemFrameData.displayName = "Wooden Frame";
-            itemFrameData.height = 2;
-            itemFrameData.width = 2;
-            itemFrameData.textureFile = "data/Wooden_Frame.png";
-            itemFrameData.displayLocation = new Vector2(8, 8);
-            ItemFrameMod.itemFrameData.Add(itemFrameData);
-            this.Helper.WriteJsonFile<List<ItemFrameData>>("data/frames.json", ItemFrameMod.itemFrameData);
-
+            ItemFrameMod.itemFrameDatum = this.Helper.ReadJsonFile<List<ItemFrameData>>("data/frames.json");
+            foreach(ItemFrameData ifd in itemFrameDatum){
+                ifd.texture=this.Helper.Content.Load<Texture2D>(ifd.textureFile, ContentSource.ModFolder);
+                ifd.id = nextID;
+                nextID += (int)(ifd.texture.Width / 16);
+                //TODO: Wrapping with items with height=32
+            }
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            ItemFrame frame = new ItemFrame(1602, new Vector2(0,0), this.Monitor);
-            Game1.player.addItemToInventory(frame);
-            Game1.addHUDMessage(new HUDMessage($"New ItemFrame added to Inventory"));
-            this.Monitor.Log("New ItemFrame added to inventory", LogLevel.Trace);
+            //ItemFrame frame = new ItemFrame(1602, new Vector2(0,0), this.Monitor);
+            //Game1.player.addItemToInventory(frame);
+            //Game1.addHUDMessage(new HUDMessage($"New ItemFrame added to Inventory"));
+            //this.Monitor.Log("New ItemFrame added to inventory", LogLevel.Trace);
             this.RestoreItemFrames();
+            Game1.player.setInventory(new List<Item>());
+            foreach(ItemFrameData ifd in ItemFrameMod.itemFrameDatum){
+                if (!Game1.player.hasItemInInventoryNamed(ifd.displayName))
+                {
+                    Game1.player.addItemToInventory(new ItemFrame(ifd.id, new Vector2(0, 0), this.Monitor));
+                }
+            }
         }
         private void SaveEvents_BeforeSave(object sender, EventArgs eventArgs){
             this.ConvertItemFrames();
@@ -134,22 +139,34 @@ namespace ItemFrames
             this.Monitor.Log($"{asset.AssetName}");
             if (asset.AssetNameEquals("Data/Furniture"))
             {
-                asset.AsDictionary<int, string>().Data.Add(2000, "'ItemFrame1'/painting/2 2/2 2/1/400");
+                //asset.AsDictionary<int, string>().Data.Add(2000, "'Wooden Frame'/painting/2 2/2 2/1/400");
+                foreach(ItemFrameData ifd in ItemFrameMod.itemFrameDatum){
+                    string lw = $"{(int)(ifd.texture.Width / 16)} {(int)(ifd.texture.Height / 16)}";
+                    string bb = $"{(int)(ifd.texture.Width / 16)} {Math.Min(2, (int)(ifd.texture.Height / 16))}";
+                    this.Monitor.Log($"'{ifd.displayName}'/painting/{lw}/{lw}/1/100", LogLevel.Trace);
+                    asset.AsDictionary<int, string>().Data.Add(ifd.id, $"'{ifd.displayName}'/painting/{lw}/{bb}/1/100");
+                }
             } else if (asset.AssetNameEquals("TileSheets/furniture")){
                 var oldTex = asset.AsImage().Data;
                 Texture2D newTex = new Texture2D(Game1.graphics.GraphicsDevice, oldTex.Width, Math.Max(oldTex.Height, 4096));
                 asset.ReplaceWith(newTex);
                 asset.AsImage().PatchImage(oldTex);
-                Texture2D frameTexture = this.Helper.Content.Load<Texture2D>("data/Wooden_Frame.png", ContentSource.ModFolder);
-                this.Monitor.Log($"{frameTexture.Height} {frameTexture.Width}");
-                asset.AsImage().PatchImage(frameTexture, targetArea: furnitureRect(2000));
+                foreach (ItemFrameData ifd in ItemFrameMod.itemFrameDatum){
+                    asset.AsImage().PatchImage(ifd.texture, targetArea: furnitureRect(ifd.id, ifd.texture));
+                }
             }
         }
-        private Rectangle furnitureRect(int index)
+        private Rectangle furnitureRect(int index, Texture2D texture)
         {
-            return new Rectangle((index % 32) * 16, (int)(index / 32) * 16, 32, 32);
+            return new Rectangle((index % 32) * 16, (int)(index / 32) * 16, texture.Width, texture.Height);
         }
         public static ItemFrameData IFDataByName(string displayName){
+            ItemFrameMod.instance.Monitor.Log($"Looking up ItemFrameData for {displayName}", LogLevel.Trace);
+            foreach (ItemFrameData itemFrameData in ItemFrameMod.itemFrameDatum){
+                if($"'{itemFrameData.displayName}'" == displayName){
+                    return itemFrameData;
+                }
+            }
             return null;
         }
 

@@ -8,11 +8,14 @@ namespace ItemFrames.Framework
     {
         [JsonIgnore]
         public Texture2D texture;
+        [JsonIgnore]
+        public int id;
 
         public string textureFile { get; set; }
         public string displayName { get; set; }
-        public int width { get; set; }
-        public int height { get; set; }
+        public string description { get; set; }
+        //public int width { get; set; }
+        //public int height { get; set; }
         public Vector2 displayLocation { get; set; }
         
     }
