@@ -35,7 +35,7 @@ namespace ItemFrames.Framework
             if (dispItem != null)
             {
                 this.displayItem = new NetRef<Item>(dispItem.getOne());
-                this.setDataFromJson();
+                this.setDisplayType();
             }
             this.setDataFromJson();
         } 
@@ -43,29 +43,33 @@ namespace ItemFrames.Framework
         public ItemFrame(int which, Vector2 tile, IMonitor monitor, Item dispItem=null) : base(which, tile)
         {
             this.monitor = monitor;
-            if (dispItem != null)
+
+            this.monitor.Log($"Creating new itemFrame with id {which}", LogLevel.Trace);
+            if (dispItem != null && dispItem is Item item)
             {
-                this.displayItem = new NetRef<Item>(dispItem.getOne());
-                this.setDataFromJson();
+                this.monitor.Log($"displayItem set to {dispItem.Name}", LogLevel.Trace);
+                this.displayItem = new NetRef<Item>(item.getOne());
+                this.setDisplayType();
+            } else {
+                this.monitor.Log($"displayItem not set.", LogLevel.Trace);
             }
             this.setDataFromJson();
 
         }
         public ItemFrame(Furniture furniture, IMonitor monitor): base(furniture.ParentSheetIndex, furniture.TileLocation){
+            this.monitor = monitor;
+            this.monitor.Log($"Restoring ItemFrame for {furniture.displayName}", LogLevel.Trace);
             if(furniture.heldObject.Value is Item item){
+                this.monitor.Log($"Item {item.Name} set as displayItem", LogLevel.Trace);
                 this.displayItem.Set(item.getOne());
                 this.setDisplayType();
             }
-            this.monitor = monitor;
             this.setDataFromJson();
         }
         public ItemFrame() : base() 
         {
             
         }
-
-       
-
 
         public void setDataFromJson(){
             ItemFrameData itemFrameData = ItemFrameMod.IFDataByName(this.name);
@@ -102,8 +106,6 @@ namespace ItemFrames.Framework
             base.draw(spriteBatch, x, y, alpha);
             if (this.displayItem.Value != null)
             {
-                //float xOffset = (64 * rectangle.Width / 16 - 64) / 2;
-                //float yOffset = (64 * rectangle.Height / 16 - 64) / 2;
                 float layerDepth = 1f - 1E-05f;
                 if (x == -1)
                 {
@@ -125,10 +127,10 @@ namespace ItemFrames.Framework
         }
         public Furniture asFurniture(){
             Furniture furniture = new Furniture(this.ParentSheetIndex, this.TileLocation);
-            furniture.name = "ItemFrame";
+            furniture.displayName = $"ItemFrame{this.displayName}";
             if (this.displayItem.Value is StardewValley.Object o)
             {
-                furniture.heldObject.Set(new Netcode.NetRef<StardewValley.Object>(o));
+                furniture.heldObject.Set(new Netcode.NetRef<StardewValley.Object>((StardewValley.Object)o.getOne()));
             }
             return furniture;
         }
@@ -184,7 +186,7 @@ namespace ItemFrames.Framework
 
         public override bool clicked(Farmer who)
         {
-            ItemFrameMod.instance.Monitor.Log($"{this.sourceRect.Value}");
+            //ItemFrameMod.instance.Monitor.Log($"{this.sourceRect.Value}");
             if (who.CurrentItem != null)
             {
                 this.monitor.Log($"Click w/item detected. Set displayItem to {who.CurrentItem.Name}");

@@ -14,8 +14,6 @@ namespace ItemFrames.Framework
         public string textureFile { get; set; }
         public string displayName { get; set; }
         public string description { get; set; }
-        //public int width { get; set; }
-        //public int height { get; set; }
         public Vector2 displayLocation { get; set; }
         public int price { get; set; } = 100;
         
