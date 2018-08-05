@@ -16,6 +16,12 @@ namespace ItemFrames.Framework
         public string description { get; set; }
         public Vector2 displayLocation { get; set; }
         public int price { get; set; } = 100;
+        public List <DisplayItem> displayItems { get; set; }
         
     }
+}
+
+public class DisplayItem {
+    public int offsetX { get; set; } = 0;
+    public int offsetY { get; set; } = 0;
 }

@@ -27,6 +27,7 @@ namespace ItemFrames.Framework
         public readonly NetFloat yOffset = new NetFloat();
         public new  NetString description = new NetString();
         private  Vector2 defaultTile = new Vector2(0, 0);
+        private NetRef<Chest> chest = new NetRef<Chest>();
 
         private IMonitor monitor;
 
